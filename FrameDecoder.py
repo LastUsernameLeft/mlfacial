@@ -1,0 +1,51 @@
+import torch
+
+
+class FrameDecoder(torch.nn.Module):
+    def __init__(self):
+        super(FrameDecoder, self).__init__()
+        self.FrameDecConvT1 = torch.nn.ConvTranspose2d(in_channels=316, out_channels=1024, kernel_size=(4, 3))
+        self.FrameDecConv2 = torch.nn.Conv2d(in_channels=2048, out_channels=1024, kernel_size=(3, 3), padding=1)
+        self.FrameDecBatchNorm2 = torch.nn.BatchNorm2d(num_features=1024)
+        self.FrameDecConvT2 = torch.nn.ConvTranspose2d(in_channels=1024, out_channels=512, kernel_size=(4, 4), stride=2, padding=1)
+        self.FrameDecConv3 = torch.nn.Conv2d(in_channels=1024, out_channels=512, kernel_size=(3, 3), padding=1)
+        self.FrameDecBatchNorm3 = torch.nn.BatchNorm2d(num_features=512)
+        self.FrameDecConvT3 = torch.nn.ConvTranspose2d(in_channels=512, out_channels=256, kernel_size=(4, 4), stride=2, padding=1)
+        self.FrameDecConv4 = torch.nn.Conv2d(in_channels=512, out_channels=256, kernel_size=(3, 3), padding=1)
+        self.FrameDecBatchNorm4 = torch.nn.BatchNorm2d(num_features=256)
+        self.FrameDecConvT4 = torch.nn.ConvTranspose2d(in_channels=256, out_channels=128, kernel_size=(4, 4), stride=2, padding=1)
+        self.FrameDecConv5 = torch.nn.Conv2d(in_channels=256, out_channels=128, kernel_size=(3, 3), padding=1)
+        self.FrameDecBatchNorm5 = torch.nn.BatchNorm2d(num_features=128)
+        self.FrameDecConvT5 = torch.nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=(4, 4), stride=2, padding=1)
+        self.FrameDecConvT6 = torch.nn.ConvTranspose2d(in_channels=64, out_channels=3, kernel_size=(4, 4), stride=2, padding=1)
+        self.LRelu = torch.nn.LeakyReLU()
+        self.Tanh = torch.nn.Tanh()
+        self.Sigmoid = torch.nn.Sigmoid()
+
+    def forward(self, x, u_net1, u_net2, u_net3, u_net4):
+        y = self.FrameDecConvT1(x)
+        print('asdasfagagag\n\n', u_net4.size(), y.size())
+        y = torch.cat((u_net4, y), 1)
+        y = self.FrameDecConv2(y)
+        y = self.LRelu(y)
+        y = self.FrameDecBatchNorm2(y)
+        y = self.FrameDecConvT2(y)
+        y = torch.cat((u_net3, y), 1)
+        y = self.FrameDecConv3(y)
+        y = self.LRelu(y)
+        y = self.FrameDecBatchNorm3(y)
+        y = self.FrameDecConvT3(y)
+        y = torch.cat((u_net2, y), 1)
+        y = self.FrameDecConv4(y)
+        y = self.LRelu(y)
+        y = self.FrameDecBatchNorm4(y)
+        y = self.FrameDecConvT4(y)
+        y = torch.cat((u_net1, y), 1)
+        y = self.FrameDecConv5(y)
+        y = self.LRelu(y)
+        y = self.FrameDecBatchNorm5(y)
+        y = self.FrameDecConvT5(y)
+        y = self.FrameDecConvT6(y)
+        y = self.Tanh(y)
+
+        return y
